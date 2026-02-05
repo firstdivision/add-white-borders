@@ -25,7 +25,7 @@ const computeBorderSize = (maxEdge: number, scale: number, percent: number) => {
 }
 
 function App() {
-  const [borderPct, setBorderPct] = useState(4)
+  const [borderPct, setBorderPct] = useState(40)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
