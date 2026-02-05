@@ -15,6 +15,17 @@ function App() {
     height: number
   } | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const isIOS = useMemo(() => {
+    if (typeof navigator === 'undefined') {
+      return false
+    }
+
+    const userAgent = navigator.userAgent
+    const isAppleMobile = /iPad|iPhone|iPod/.test(userAgent)
+    const isIpadOs = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1
+
+    return isAppleMobile || isIpadOs
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -201,6 +212,12 @@ function App() {
           >
             {isDownloading ? 'Preparing download...' : 'Download image'}
           </button>
+          {isIOS ? (
+            <p className="ios-hint">
+              On iOS, downloads go to Files. Tap Share then Save Image to add
+              it to Photos.
+            </p>
+          ) : null}
         </aside>
       </section>
     </div>
