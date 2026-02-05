@@ -115,40 +115,62 @@ function App() {
     }
     setIsDownloading(true)
     try {
-      const image = new Image()
-      image.src = imageUrl
-      await new Promise<void>((resolve, reject) => {
-        image.onload = () => resolve()
-        image.onerror = () => reject(new Error('Failed to load image'))
-      })
-
-      const borderSize = computeBorderSize(
-        Math.max(image.width, image.height),
-        1,
-        borderPct,
-      )
-      const canvas = document.createElement('canvas')
-      canvas.width = image.width + borderSize * 2
-      canvas.height = image.height + borderSize * 2
-      const context = canvas.getContext('2d')
-
-      if (!context) {
+      const processed = await buildProcessedImageDataUrl()
+      if (!processed) {
         return
       }
-
-      context.fillStyle = '#ffffff'
-      context.fillRect(0, 0, canvas.width, canvas.height)
-      context.drawImage(image, borderSize, borderSize)
-
       const link = document.createElement('a')
-      link.download = fileName
-        ? fileName.replace(/\.[^.]+$/, '') + '-white-border.png'
-        : 'white-border.png'
-      link.href = canvas.toDataURL('image/png')
+      link.download = processed.fileName
+      link.href = processed.dataUrl
       link.click()
     } finally {
       setIsDownloading(false)
     }
+  }
+
+  const buildProcessedImageDataUrl = async () => {
+    if (!imageUrl) {
+      return null
+    }
+    const image = new Image()
+    image.src = imageUrl
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve()
+      image.onerror = () => reject(new Error('Failed to load image'))
+    })
+
+    const borderSize = computeBorderSize(
+      Math.max(image.width, image.height),
+      1,
+      borderPct,
+    )
+    const canvas = document.createElement('canvas')
+    canvas.width = image.width + borderSize * 2
+    canvas.height = image.height + borderSize * 2
+    const context = canvas.getContext('2d')
+
+    if (!context) {
+      return null
+    }
+
+    context.fillStyle = '#ffffff'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+    context.drawImage(image, borderSize, borderSize)
+
+    return {
+      dataUrl: canvas.toDataURL('image/png'),
+      fileName: fileName
+        ? fileName.replace(/\.[^.]+$/, '') + '-white-border.png'
+        : 'white-border.png',
+    }
+  }
+
+  const handleOpenInNewTab = async () => {
+    const processed = await buildProcessedImageDataUrl()
+    if (!processed) {
+      return
+    }
+    window.open(processed.dataUrl, '_blank', 'noopener,noreferrer')
   }
 
   const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
@@ -282,6 +304,46 @@ function App() {
             disabled={!imageUrl || isDownloading}
           >
             {isDownloading ? 'Preparing download...' : 'Download image'}
+            <span className="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img">
+                <path
+                  d="M12 3v10m0 0l4-4m-4 4l-4-4M4 17v3h16v-3"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </button>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => void handleOpenInNewTab()}
+            disabled={!imageUrl || isDownloading}
+          >
+            Open in new tab
+            <span className="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img">
+                <path
+                  d="M14 4h6v6m0-6L10 14"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M5 9v11h11"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
           </button>
           {imageUrl ? (
             <button
@@ -290,6 +352,26 @@ function App() {
               onClick={handleChangeImage}
             >
               Change image
+              <span className="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img">
+                  <path
+                    d="M15 4h5v5m0-5l-6 6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9 20H4v-5m0 5l6-6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
             </button>
           ) : null}
           {isIOS ? (
