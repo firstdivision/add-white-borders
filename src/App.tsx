@@ -156,6 +156,19 @@ function App() {
     setImageSize({ width: naturalWidth, height: naturalHeight })
   }
 
+  const handleChangeImage = () => {
+    if (imageUrl) {
+      URL.revokeObjectURL(imageUrl)
+    }
+    setImageUrl(null)
+    setFileName(null)
+    setImageSize(null)
+    setRenderedSize(null)
+    if (inputRef.current) {
+      inputRef.current.value = ''
+    }
+  }
+
   useEffect(() => {
     const element = imageRef.current
     if (!element) {
@@ -270,6 +283,15 @@ function App() {
           >
             {isDownloading ? 'Preparing download...' : 'Download image'}
           </button>
+          {imageUrl ? (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={handleChangeImage}
+            >
+              Change image
+            </button>
+          ) : null}
           {isIOS ? (
             <p className="ios-hint">
               On iOS, downloads go to Files. Tap Share then Save Image to add

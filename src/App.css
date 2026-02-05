@@ -220,6 +220,23 @@
   transform: none;
 }
 
+.secondary-button {
+  border: 1px solid rgba(26, 26, 26, 0.25);
+  padding: 0.75rem 1.2rem;
+  border-radius: 999px;
+  background: transparent;
+  color: #1a1a1a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.secondary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(20, 20, 20, 0.12);
+  border-color: rgba(26, 26, 26, 0.4);
+}
+
 .ios-hint {
   margin: 0;
   font-size: 0.85rem;
