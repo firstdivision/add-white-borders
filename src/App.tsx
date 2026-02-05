@@ -2,7 +2,27 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import './App.css'
 
-const BORDER_SCALE = 0.05
+const BORDER_SCALE = 0.12
+const BORDER_EASE_POWER = 2.4
+const BORDER_EARLY_WEIGHT = 0.35
+
+const scaleBorderEffect = (value: number) => {
+  const normalized = Math.min(Math.max(value / 100, 0), 1)
+  const curve = Math.pow(normalized, BORDER_EASE_POWER)
+  return normalized * (BORDER_EARLY_WEIGHT + (1 - BORDER_EARLY_WEIGHT) * curve)
+}
+
+const computeBorderSize = (maxEdge: number, scale: number, percent: number) => {
+  if (percent <= 0 || maxEdge <= 0) {
+    return 0
+  }
+
+  const easedBorderPct = scaleBorderEffect(percent)
+  const rawBorderPx = maxEdge * easedBorderPct * BORDER_SCALE * scale
+  const roundedBorderPx = Math.round(rawBorderPx)
+
+  return Math.max(1, roundedBorderPx)
+}
 
 function App() {
   const [borderPct, setBorderPct] = useState(4)
@@ -52,9 +72,7 @@ function App() {
     }
     const scale = renderedMaxEdge / naturalMaxEdge
 
-    return Math.round(
-      naturalMaxEdge * (borderPct / 100) * BORDER_SCALE * scale,
-    )
+    return computeBorderSize(naturalMaxEdge, scale, borderPct)
   }, [borderPct, imageSize, renderedSize])
 
   const setFile = (file: File | null) => {
@@ -104,10 +122,10 @@ function App() {
         image.onerror = () => reject(new Error('Failed to load image'))
       })
 
-      const borderSize = Math.round(
-        Math.max(image.width, image.height) *
-          (borderPct / 100) *
-          BORDER_SCALE,
+      const borderSize = computeBorderSize(
+        Math.max(image.width, image.height),
+        1,
+        borderPct,
       )
       const canvas = document.createElement('canvas')
       canvas.width = image.width + borderSize * 2
