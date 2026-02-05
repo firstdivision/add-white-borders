@@ -24,6 +24,21 @@ const computeBorderSize = (maxEdge: number, scale: number, percent: number) => {
   return Math.max(1, roundedBorderPx)
 }
 
+const computePreviewBorderSize = (
+  maxEdge: number,
+  scale: number,
+  percent: number,
+) => {
+  if (percent <= 0 || maxEdge <= 0) {
+    return 0
+  }
+
+  const easedBorderPct = scaleBorderEffect(percent)
+  const rawBorderPx = maxEdge * easedBorderPct * BORDER_SCALE * scale
+
+  return Math.max(1, rawBorderPx)
+}
+
 function App() {
   const [borderPct, setBorderPct] = useState(40)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
@@ -72,7 +87,7 @@ function App() {
     }
     const scale = renderedMaxEdge / naturalMaxEdge
 
-    return computeBorderSize(naturalMaxEdge, scale, borderPct)
+    return computePreviewBorderSize(naturalMaxEdge, scale, borderPct)
   }, [borderPct, imageSize, renderedSize])
 
   const setFile = (file: File | null) => {
