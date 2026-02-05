@@ -165,13 +165,6 @@ function App() {
     }
   }
 
-  const handleOpenInNewTab = async () => {
-    const processed = await buildProcessedImageDataUrl()
-    if (!processed) {
-      return
-    }
-    window.open(processed.dataUrl, '_blank', 'noopener,noreferrer')
-  }
 
   const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
     const { naturalWidth, naturalHeight } = event.currentTarget
@@ -308,34 +301,6 @@ function App() {
               <svg viewBox="0 0 24 24" role="img">
                 <path
                   d="M12 3v10m0 0l4-4m-4 4l-4-4M4 17v3h16v-3"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-          </button>
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => void handleOpenInNewTab()}
-            disabled={!imageUrl || isDownloading}
-          >
-            Open in new tab
-            <span className="button-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" role="img">
-                <path
-                  d="M14 4h6v6m0-6L10 14"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M5 9v11h11"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
