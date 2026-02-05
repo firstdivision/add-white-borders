@@ -316,8 +316,8 @@ function App() {
           </button>
           {isIOS ? (
             <p className="ios-hint">
-              On iOS, downloads go to Files. Tap Share then Save Image to add
-              it to Photos.
+              On iOS, downloads go to Files. Open "Files", tap "Share", then "Save Image" to add
+              it to your Photos.
             </p>
           ) : null}
           {imageUrl ? (
