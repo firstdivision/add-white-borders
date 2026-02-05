@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import './App.css'
 
 function App() {
-  const [borderPct, setBorderPct] = useState(12)
+  const [borderPct, setBorderPct] = useState(4)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -103,51 +103,47 @@ function App() {
       </header>
 
       <section className="workspace">
-        <div
-          className={`dropzone ${isDragging ? 'dropzone--active' : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileInput}
-            aria-label="Upload image"
-          />
-          <div className="dropzone-content">
-            <span className="dropzone-title">
-              Drag & drop your photo here
-            </span>
-            <span className="dropzone-subtitle">or browse your device</span>
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-            >
-              Choose image
-            </button>
-            <span className="dropzone-hint">JPG, PNG, HEIC</span>
-          </div>
-        </div>
-
-        <div className="preview-panel">
-          <div className="preview-frame">
-            {imageUrl ? (
+        {imageUrl ? (
+          <div className="preview-panel">
+            <div className="preview-frame">
               <div
                 className="border-matte"
                 style={{ '--border-pct': borderPct } as CSSProperties}
               >
                 <img src={imageUrl} alt={fileName ?? 'Uploaded preview'} />
               </div>
-            ) : (
-              <div className="preview-placeholder">
-                Upload a photo to preview the border.
-              </div>
-            )}
+            </div>
+            {fileName ? <div className="file-name">{fileName}</div> : null}
           </div>
-          {fileName ? <div className="file-name">{fileName}</div> : null}
-        </div>
+        ) : (
+          <div
+            className={`dropzone ${isDragging ? 'dropzone--active' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileInput}
+              aria-label="Upload image"
+            />
+            <div className="dropzone-content">
+              <span className="dropzone-title">
+                Drag & drop your photo here
+              </span>
+              <span className="dropzone-subtitle">or browse your device</span>
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+              >
+                Choose image
+              </button>
+              <span className="dropzone-hint">JPG, PNG, HEIC</span>
+            </div>
+          </div>
+        )}
 
         <aside className="controls">
           <div className="panel-title">Image Settings</div>

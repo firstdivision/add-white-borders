@@ -41,7 +41,7 @@
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.7fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.7fr);
   gap: 1.75rem;
   align-items: start;
 }
