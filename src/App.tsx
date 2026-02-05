@@ -14,7 +14,12 @@ function App() {
     width: number
     height: number
   } | null>(null)
+  const [renderedSize, setRenderedSize] = useState<{
+    width: number
+    height: number
+  } | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const imageRef = useRef<HTMLImageElement | null>(null)
   const isIOS = useMemo(() => {
     if (typeof navigator === 'undefined') {
       return false
@@ -37,15 +42,20 @@ function App() {
 
   const borderLabel = useMemo(() => `${borderPct}%`, [borderPct])
   const borderPx = useMemo(() => {
-    if (!imageSize) {
+    if (!imageSize || !renderedSize) {
       return 0
     }
+    const naturalMaxEdge = Math.max(imageSize.width, imageSize.height)
+    const renderedMaxEdge = Math.max(renderedSize.width, renderedSize.height)
+    if (naturalMaxEdge === 0) {
+      return 0
+    }
+    const scale = renderedMaxEdge / naturalMaxEdge
+
     return Math.round(
-      Math.max(imageSize.width, imageSize.height) *
-        (borderPct / 100) *
-        BORDER_SCALE,
+      naturalMaxEdge * (borderPct / 100) * BORDER_SCALE * scale,
     )
-  }, [borderPct, imageSize])
+  }, [borderPct, imageSize, renderedSize])
 
   const setFile = (file: File | null) => {
     if (!file) {
@@ -128,6 +138,35 @@ function App() {
     setImageSize({ width: naturalWidth, height: naturalHeight })
   }
 
+  useEffect(() => {
+    const element = imageRef.current
+    if (!element) {
+      return
+    }
+
+    const updateRenderedSize = () => {
+      setRenderedSize({
+        width: element.clientWidth,
+        height: element.clientHeight,
+      })
+    }
+
+    updateRenderedSize()
+
+    if (typeof ResizeObserver === 'undefined') {
+      return
+    }
+
+    const observer = new ResizeObserver(() => {
+      updateRenderedSize()
+    })
+    observer.observe(element)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [imageUrl])
+
   return (
     <div className="app">
       <header className="hero">
@@ -148,6 +187,7 @@ function App() {
                 style={{ '--border-px': `${borderPx}px` } as CSSProperties}
               >
                 <img
+                  ref={imageRef}
                   src={imageUrl}
                   alt={fileName ?? 'Uploaded preview'}
                   onLoad={handleImageLoad}
@@ -189,14 +229,14 @@ function App() {
         <aside className="controls">
           <div className="panel-title">Image Settings</div>
           <label className="slider-label" htmlFor="borderRange">
-            <span>Border %</span>
+            <span>Border Effect</span>
             <span className="slider-value">{borderLabel}</span>
           </label>
           <input
             id="borderRange"
             type="range"
             min={0}
-            max={50}
+            max={100}
             value={borderPct}
             onChange={(event) => setBorderPct(Number(event.target.value))}
           />
