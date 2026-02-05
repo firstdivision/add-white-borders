@@ -7,6 +7,7 @@ function App() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -52,6 +53,44 @@ function App() {
     setIsDragging(false)
   }
 
+  const handleDownload = async () => {
+    if (!imageUrl) {
+      return
+    }
+    setIsDownloading(true)
+    const image = new Image()
+    image.src = imageUrl
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve()
+      image.onerror = () => reject(new Error('Failed to load image'))
+    })
+
+    const borderSize = Math.round(
+      Math.min(image.width, image.height) * (borderPct / 100),
+    )
+    const canvas = document.createElement('canvas')
+    canvas.width = image.width + borderSize * 2
+    canvas.height = image.height + borderSize * 2
+    const context = canvas.getContext('2d')
+
+    if (!context) {
+      setIsDownloading(false)
+      return
+    }
+
+    context.fillStyle = '#ffffff'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+    context.drawImage(image, borderSize, borderSize)
+
+    const link = document.createElement('a')
+    link.download = fileName
+      ? fileName.replace(/\.[^.]+$/, '') + '-white-border.png'
+      : 'white-border.png'
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+    setIsDownloading(false)
+  }
+
   return (
     <div className="app">
       <header className="hero">
@@ -93,12 +132,14 @@ function App() {
         </div>
 
         <div className="preview-panel">
-          <div
-            className="preview-frame"
-            style={{ '--border-pct': borderPct } as CSSProperties}
-          >
+          <div className="preview-frame">
             {imageUrl ? (
-              <img src={imageUrl} alt={fileName ?? 'Uploaded preview'} />
+              <div
+                className="border-matte"
+                style={{ '--border-pct': borderPct } as CSSProperties}
+              >
+                <img src={imageUrl} alt={fileName ?? 'Uploaded preview'} />
+              </div>
             ) : (
               <div className="preview-placeholder">
                 Upload a photo to preview the border.
@@ -125,6 +166,14 @@ function App() {
           <p className="helper-text">
             Border size scales with your image dimensions for a balanced frame.
           </p>
+          <button
+            type="button"
+            className="download-button"
+            onClick={() => void handleDownload()}
+            disabled={!imageUrl || isDownloading}
+          >
+            {isDownloading ? 'Preparing download...' : 'Download image'}
+          </button>
         </aside>
       </section>
     </div>
