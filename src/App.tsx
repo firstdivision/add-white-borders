@@ -222,6 +222,10 @@ function App() {
           Drop an image, dial in the border, and get a clean, gallery-ready
           look without leaving the browser.
         </p>
+        <p>
+          Everything runs locally in your browser, so your photos stay private
+          and never leave your device.
+        </p>
       </header>
 
       <section className="workspace">
