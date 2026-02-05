@@ -310,6 +310,12 @@ function App() {
               </svg>
             </span>
           </button>
+          {isIOS ? (
+            <p className="ios-hint">
+              On iOS, downloads go to Files. Tap Share then Save Image to add
+              it to Photos.
+            </p>
+          ) : null}
           {imageUrl ? (
             <button
               type="button"
@@ -338,12 +344,6 @@ function App() {
                 </svg>
               </span>
             </button>
-          ) : null}
-          {isIOS ? (
-            <p className="ios-hint">
-              On iOS, downloads go to Files. Tap Share then Save Image to add
-              it to Photos.
-            </p>
           ) : null}
         </aside>
       </section>
