@@ -2,12 +2,18 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import './App.css'
 
+const BORDER_SCALE = 0.05
+
 function App() {
   const [borderPct, setBorderPct] = useState(4)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [imageSize, setImageSize] = useState<{
+    width: number
+    height: number
+  } | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -19,6 +25,16 @@ function App() {
   }, [imageUrl])
 
   const borderLabel = useMemo(() => `${borderPct}%`, [borderPct])
+  const borderPx = useMemo(() => {
+    if (!imageSize) {
+      return 0
+    }
+    return Math.round(
+      Math.max(imageSize.width, imageSize.height) *
+        (borderPct / 100) *
+        BORDER_SCALE,
+    )
+  }, [borderPct, imageSize])
 
   const setFile = (file: File | null) => {
     if (!file) {
@@ -30,6 +46,7 @@ function App() {
     const nextUrl = URL.createObjectURL(file)
     setImageUrl(nextUrl)
     setFileName(file.name)
+    setImageSize(null)
   }
 
   const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,37 +75,46 @@ function App() {
       return
     }
     setIsDownloading(true)
-    const image = new Image()
-    image.src = imageUrl
-    await new Promise<void>((resolve, reject) => {
-      image.onload = () => resolve()
-      image.onerror = () => reject(new Error('Failed to load image'))
-    })
+    try {
+      const image = new Image()
+      image.src = imageUrl
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve()
+        image.onerror = () => reject(new Error('Failed to load image'))
+      })
 
-    const borderSize = Math.round(
-      Math.min(image.width, image.height) * (borderPct / 100),
-    )
-    const canvas = document.createElement('canvas')
-    canvas.width = image.width + borderSize * 2
-    canvas.height = image.height + borderSize * 2
-    const context = canvas.getContext('2d')
+      const borderSize = Math.round(
+        Math.max(image.width, image.height) *
+          (borderPct / 100) *
+          BORDER_SCALE,
+      )
+      const canvas = document.createElement('canvas')
+      canvas.width = image.width + borderSize * 2
+      canvas.height = image.height + borderSize * 2
+      const context = canvas.getContext('2d')
 
-    if (!context) {
+      if (!context) {
+        return
+      }
+
+      context.fillStyle = '#ffffff'
+      context.fillRect(0, 0, canvas.width, canvas.height)
+      context.drawImage(image, borderSize, borderSize)
+
+      const link = document.createElement('a')
+      link.download = fileName
+        ? fileName.replace(/\.[^.]+$/, '') + '-white-border.png'
+        : 'white-border.png'
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } finally {
       setIsDownloading(false)
-      return
     }
+  }
 
-    context.fillStyle = '#ffffff'
-    context.fillRect(0, 0, canvas.width, canvas.height)
-    context.drawImage(image, borderSize, borderSize)
-
-    const link = document.createElement('a')
-    link.download = fileName
-      ? fileName.replace(/\.[^.]+$/, '') + '-white-border.png'
-      : 'white-border.png'
-    link.href = canvas.toDataURL('image/png')
-    link.click()
-    setIsDownloading(false)
+  const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    const { naturalWidth, naturalHeight } = event.currentTarget
+    setImageSize({ width: naturalWidth, height: naturalHeight })
   }
 
   return (
@@ -108,9 +134,13 @@ function App() {
             <div className="preview-frame">
               <div
                 className="border-matte"
-                style={{ '--border-pct': borderPct } as CSSProperties}
+                style={{ '--border-px': `${borderPx}px` } as CSSProperties}
               >
-                <img src={imageUrl} alt={fileName ?? 'Uploaded preview'} />
+                <img
+                  src={imageUrl}
+                  alt={fileName ?? 'Uploaded preview'}
+                  onLoad={handleImageLoad}
+                />
               </div>
             </div>
             {fileName ? <div className="file-name">{fileName}</div> : null}
@@ -160,7 +190,8 @@ function App() {
             onChange={(event) => setBorderPct(Number(event.target.value))}
           />
           <p className="helper-text">
-            Border size scales with your image dimensions for a balanced frame.
+            Border size is calculated from the longer image edge for a finer
+            matte.
           </p>
           <button
             type="button"

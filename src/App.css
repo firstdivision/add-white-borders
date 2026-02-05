@@ -131,7 +131,7 @@
 
 .border-matte {
   background: #ffffff;
-  padding: calc(var(--border-pct, 0) * 1%);
+  padding: var(--border-px, 0px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
